@@ -9,19 +9,37 @@ int main() {
     char* cmdline;
     char** arglist;
     
-    // NEW: Initialize history
+    // Initialize history
     init_history();
 
-    while ((cmdline = read_cmd(PROMPT, stdin)) != NULL) {
-        // NEW: Handle !n commands before tokenization
+    while (1) {
+        // NEW: Replace read_cmd with readline()
+        cmdline = readline(PROMPT);
+        
+        // Check for EOF (Ctrl+D)
+        if (cmdline == NULL) {
+            printf("\n");
+            break;
+        }
+        
+        // Skip empty lines
+        if (cmdline[0] == '\0') {
+            free(cmdline);
+            continue;
+        }
+
+        // NEW: Handle !n commands before adding to history
         if (cmdline[0] == '!') {
             if (execute_bang_command(cmdline)) {
                 free(cmdline);
-                continue; // Command was handled, skip to next iteration
+                continue;
             }
         }
         
-        // NEW: Add command to history (before tokenization)
+        // NEW: Add to readline history (instead of our custom history)
+        add_history(cmdline);
+        
+        // Also add to our custom history for !n command
         add_to_history(cmdline);
         
         if ((arglist = tokenize(cmdline)) != NULL) {
@@ -40,6 +58,6 @@ int main() {
         free(cmdline);
     }
 
-    printf("\nShell exited.\n");
+    printf("Shell exited.\n");
     return 0;
 }
