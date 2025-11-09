@@ -1,6 +1,9 @@
 #include "shell.h"
 #include <stdio.h>
 
+// External declaration for history function
+void builtin_history();
+
 // Exit the shell
 void builtin_exit() {
     printf("Shell exiting...\n");
@@ -33,6 +36,7 @@ void builtin_help() {
     printf("  cd <directory>    - Change current directory\n");
     printf("  exit              - Exit the shell\n");
     printf("  help              - Display this help message\n");
+    printf("  history           - Display command history\n");  // UPDATED
     printf("  jobs              - Display background jobs (not implemented)\n");
 }
 
@@ -57,6 +61,10 @@ int handle_builtin(char** arglist) {
     }
     else if (strcmp(arglist[0], "help") == 0) {
         builtin_help();
+        return 1;
+    }
+    else if (strcmp(arglist[0], "history") == 0) {  // NEW
+        builtin_history();
         return 1;
     }
     else if (strcmp(arglist[0], "jobs") == 0) {

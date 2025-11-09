@@ -36,3 +36,22 @@ void add_to_history(char* command) {
         history_count++;
     }
 }
+
+// Display command history
+void builtin_history() {
+    int start_index;
+    int display_count = history_count;
+    
+    if (history_count == HISTORY_SIZE) {
+        // History is full, start from oldest entry
+        start_index = history_next;
+    } else {
+        // History not full, start from beginning
+        start_index = 0;
+    }
+    
+    for (int i = 0; i < display_count; i++) {
+        int actual_index = (start_index + i) % HISTORY_SIZE;
+        printf("%d %s\n", i + 1, history[actual_index]);
+    }
+}
