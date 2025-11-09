@@ -17,5 +17,12 @@
 char* read_cmd(char* prompt, FILE* fp);
 char** tokenize(char* cmdline);
 int execute(char* arglist[]);
+int handle_builtin(char** arglist);  // NEW: Built-in command handler
+
+// NEW: Built-in command functions
+void builtin_exit();
+void builtin_cd(char** args);
+void builtin_help();
+void builtin_jobs();
 
 #endif
