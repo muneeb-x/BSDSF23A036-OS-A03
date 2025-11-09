@@ -8,8 +8,8 @@ SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
 
-# Source files (UPDATED: added builtins.c)
-SOURCES = $(SRCDIR)/main.c $(SRCDIR)/shell.c $(SRCDIR)/execute.c $(SRCDIR)/builtins.c
+# Source files (UPDATED: added history.c)
+SOURCES = $(SRCDIR)/main.c $(SRCDIR)/shell.c $(SRCDIR)/execute.c $(SRCDIR)/builtins.c $(SRCDIR)/history.c
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Target executable
