@@ -55,3 +55,61 @@ void builtin_history() {
         printf("%d %s\n", i + 1, history[actual_index]);
     }
 }
+
+// Execute !n command
+int execute_bang_command(char* cmdline) {
+    if (cmdline[0] != '!' || cmdline[1] == '\0') {
+        return 0; // Not a valid bang command
+    }
+    
+    // Parse the number after !
+    int n = atoi(cmdline + 1);
+    if (n <= 0) {
+        printf("history: invalid command number\n");
+        return 1;
+    }
+    
+    // Convert to 0-based index
+    int index = n - 1;
+    
+    // Validate index
+    if (index >= history_count) {
+        printf("history: no such command %d\n", n);
+        return 1;
+    }
+    
+    // Calculate actual index in circular buffer
+    int actual_index;
+    if (history_count == HISTORY_SIZE) {
+        // History is full
+        actual_index = (history_next + index) % HISTORY_SIZE;
+    } else {
+        // History not full
+        actual_index = index;
+    }
+    
+    // Get the command from history
+    char* historical_cmd = history[actual_index];
+    if (historical_cmd == NULL) {
+        printf("history: no such command %d\n", n);
+        return 1;
+    }
+    
+    printf("%s\n", historical_cmd); // Echo the command
+    
+    // Execute the historical command
+    char** arglist = tokenize(historical_cmd);
+    if (arglist != NULL) {
+        if (handle_builtin(arglist) == 0) {
+            execute(arglist);
+        }
+        
+        // Free memory
+        for (int i = 0; arglist[i] != NULL; i++) {
+            free(arglist[i]);
+        }
+        free(arglist);
+    }
+    
+    return 1; // Command was handled
+}
