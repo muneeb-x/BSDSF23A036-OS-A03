@@ -8,14 +8,18 @@
 #include <sys/wait.h>
 #include <sys/types.h>
 
+// NEW: Readline headers
+#include <readline/readline.h>
+#include <readline/history.h>
+
 #define MAX_LEN 1024
 #define MAXARGS 20
 #define ARGLEN 64
 #define PROMPT "myshell> "
-#define HISTORY_SIZE 20  // NEW: History size constant
+#define HISTORY_SIZE 20
 
 // Function declarations
-char* read_cmd(char* prompt, FILE* fp);
+char* read_cmd(char* prompt, FILE* fp);  // Keep for now, will remove later
 char** tokenize(char* cmdline);
 int execute(char* arglist[]);
 int handle_builtin(char** arglist);
@@ -26,7 +30,7 @@ void builtin_cd(char** args);
 void builtin_help();
 void builtin_jobs();
 
-// NEW: History functions
+// History functions
 void init_history();
 void add_to_history(char* command);
 void builtin_history();
