@@ -50,7 +50,7 @@ if_block_t* parse_if_block() {
     block->has_else = 0;
     
     // Read the condition line (after 'if')
-    char* line = readline("");
+    char* line = readline("  condition> ");  // CHANGED: Added prompt
     if (line == NULL) {
         free(block);
         return NULL; // EOF
@@ -60,19 +60,28 @@ if_block_t* parse_if_block() {
     char* condition_start = line;
     while (*condition_start == ' ' || *condition_start == '\t') condition_start++;
     condition_start += 2; // Skip 'if'
-    while (*condition_start == ' ' || *condition_start == '\t') condition_start_start++;
+    while (*condition_start == ' ' || *condition_start == '\t') condition_start++;
     
     block->condition = strdup(condition_start);
     free(line);
     
     // Look for 'then'
-    line = readline("");
+    line = readline("  then> ");  // CHANGED: Added prompt
     if (line == NULL) {
         free_if_block(block);
         return NULL; // EOF
     }
     
-    // Skip 'then' line
+    // Validate 'then' keyword
+    char* then_check = line;
+    while (*then_check == ' ' || *then_check == '\t') then_check++;
+    if (strncmp(then_check, "then", 4) != 0) {
+        printf("Error: Expected 'then' keyword\n");
+        free(line);
+        free_if_block(block);
+        return NULL;
+    }
+    
     free(line);
     
     // Read then-block commands until 'else' or 'fi'
@@ -80,7 +89,7 @@ if_block_t* parse_if_block() {
     int in_else_block = 0;
     
     while (1) {
-        line = readline("");
+        line = readline("    ");  // CHANGED: Added indentation prompt
         if (line == NULL) {
             free_if_block(block);
             return NULL; // EOF
@@ -88,13 +97,16 @@ if_block_t* parse_if_block() {
         
         // Check for control keywords
         if (is_control_keyword(line)) {
-            if (strncmp(line, "else", 4) == 0) {
+            char* keyword = line;
+            while (*keyword == ' ' || *keyword == '\t') keyword++;
+            
+            if (strncmp(keyword, "else", 4) == 0) {
                 in_then_block = 0;
                 in_else_block = 1;
                 block->has_else = 1;
                 free(line);
                 continue;
-            } else if (strncmp(line, "fi", 2) == 0) {
+            } else if (strncmp(keyword, "fi", 2) == 0) {
                 free(line);
                 break; // End of if block
             }
@@ -145,6 +157,9 @@ int execute_if_block(if_block_t* block) {
             perror("fork failed");
             condition_status = 1;
         }
+    } else {
+        // Built-in command was handled, assume success for now
+        condition_status = 0;
     }
     
     // Free condition args
