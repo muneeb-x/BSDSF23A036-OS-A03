@@ -4,10 +4,15 @@
 void init_history();
 void add_to_history(char* command);
 int execute_bang_command(char* cmdline);
-command_t* parse_command(char* cmdline);  // NEW
-void free_command(command_t* cmd);        // NEW
-int execute_redirected(command_t* cmd);   // NEW
-int execute_pipeline(command_t** commands, int num_commands);  // NEW
+command_t* parse_command(char* cmdline);
+void free_command(command_t* cmd);
+int execute_redirected(command_t* cmd);
+int execute_pipeline(command_t** commands, int num_commands);
+void init_jobs();
+void update_jobs();
+void reap_zombies();
+command_t** parse_command_chain(char* cmdline, int* num_commands);
+void free_command_chain(command_t** commands, int num_commands);
 
 // Helper function to convert command_t to arglist for builtins
 char** command_to_arglist(command_t* cmd) {
@@ -25,13 +30,50 @@ char** command_to_arglist(command_t* cmd) {
     return arglist;
 }
 
+// Execute a single command (with possible background/redirection)
+void execute_single_command(command_t* cmd) {
+    if (cmd == NULL) return;
+    
+    char** arglist = command_to_arglist(cmd);
+    if (arglist != NULL) {
+        if (handle_builtin(arglist) == 0) {
+            // Not a built-in, check for redirection/background
+            if (cmd->input_file || cmd->output_file || cmd->background) {
+                execute_redirected(cmd);
+            } else if (cmd->pipe_output) {
+                // Handle pipeline
+                command_t* commands[2];
+                commands[0] = cmd;
+                
+                // Parse the second command after pipe
+                // Note: This is simplified - full pipeline parsing would be more complex
+                printf("Note: Multi-command pipelines need full command line for parsing\n");
+            } else {
+                // Regular command execution
+                execute(arglist);
+            }
+        }
+        
+        // Free arglist
+        for (int i = 0; arglist[i] != NULL; i++) {
+            free(arglist[i]);
+        }
+        free(arglist);
+    }
+}
+
 int main() {
     char* cmdline;
     
-    // Initialize history
+    // Initialize history and jobs
     init_history();
+    init_jobs();
 
     while (1) {
+        // NEW: Reap zombie processes before prompt
+        reap_zombies();
+        update_jobs();
+        
         cmdline = readline(PROMPT);
         
         // Check for EOF (Ctrl+D)
@@ -58,47 +100,16 @@ int main() {
         add_history(cmdline);
         add_to_history(cmdline);
         
-        // NEW: Parse command with redirection and pipe support
-        command_t* cmd = parse_command(cmdline);
-        if (cmd != NULL) {
-            if (cmd->pipe_output) {
-                // Handle pipeline - for now, single pipe
-                command_t* commands[2];
-                commands[0] = cmd;
-                
-                // Parse the second command after pipe
-                char* pipe_pos = strchr(cmdline, '|');
-                if (pipe_pos) {
-                    command_t* cmd2 = parse_command(pipe_pos + 1);
-                    if (cmd2) {
-                        commands[1] = cmd2;
-                        execute_pipeline(commands, 2);
-                        free_command(cmd2);
-                    }
-                }
-            } else {
-                // Handle single command with possible redirection
-                char** arglist = command_to_arglist(cmd);
-                if (arglist != NULL) {
-                    if (handle_builtin(arglist) == 0) {
-                        // Not a built-in, check for redirection
-                        if (cmd->input_file || cmd->output_file) {
-                            execute_redirected(cmd);
-                        } else {
-                            // Regular command execution
-                            execute(arglist);
-                        }
-                    }
-                    
-                    // Free arglist
-                    for (int i = 0; arglist[i] != NULL; i++) {
-                        free(arglist[i]);
-                    }
-                    free(arglist);
-                }
+        // NEW: Parse command chain with semicolons
+        int num_commands;
+        command_t** commands = parse_command_chain(cmdline, &num_commands);
+        
+        if (commands != NULL && num_commands > 0) {
+            // Execute each command in sequence
+            for (int i = 0; i < num_commands; i++) {
+                execute_single_command(commands[i]);
             }
-            
-            free_command(cmd);
+            free_command_chain(commands, num_commands);
         }
         
         free(cmdline);

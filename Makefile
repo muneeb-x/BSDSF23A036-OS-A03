@@ -8,10 +8,11 @@ SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
 
-# Source files (UPDATED: added parser.c, redirection.c, pipes.c)
+# Source files (UPDATED: added jobs.c and chain.c)
 SOURCES = $(SRCDIR)/main.c $(SRCDIR)/shell.c $(SRCDIR)/execute.c \
           $(SRCDIR)/builtins.c $(SRCDIR)/history.c $(SRCDIR)/parser.c \
-          $(SRCDIR)/redirection.c $(SRCDIR)/pipes.c
+          $(SRCDIR)/redirection.c $(SRCDIR)/pipes.c $(SRCDIR)/jobs.c \
+          $(SRCDIR)/chain.c
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Target executable
