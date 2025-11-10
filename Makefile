@@ -1,15 +1,17 @@
 # Compiler and flags
 CC = gcc
 CFLAGS = -Wall -g -Iinclude
-LDFLAGS = -lreadline  # NEW: Link against readline library
+LDFLAGS = -lreadline
 
 # Directories
 SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
 
-# Source files
-SOURCES = $(SRCDIR)/main.c $(SRCDIR)/shell.c $(SRCDIR)/execute.c $(SRCDIR)/builtins.c $(SRCDIR)/history.c
+# Source files (UPDATED: added parser.c, redirection.c, pipes.c)
+SOURCES = $(SRCDIR)/main.c $(SRCDIR)/shell.c $(SRCDIR)/execute.c \
+          $(SRCDIR)/builtins.c $(SRCDIR)/history.c $(SRCDIR)/parser.c \
+          $(SRCDIR)/redirection.c $(SRCDIR)/pipes.c
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Target executable
