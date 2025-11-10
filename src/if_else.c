@@ -112,3 +112,81 @@ if_block_t* parse_if_block() {
     
     return block;
 }
+
+// Execute if-then-else block
+int execute_if_block(if_block_t* block) {
+    if (block == NULL || block->condition == NULL) {
+        return -1;
+    }
+    
+    // Execute the condition command
+    char** condition_args = tokenize(block->condition);
+    if (condition_args == NULL) {
+        return -1;
+    }
+    
+    int condition_status = 0;
+    
+    // Check if it's a built-in command
+    if (handle_builtin(condition_args) == 0) {
+        // Not a built-in, execute as external command
+        pid_t pid = fork();
+        if (pid == 0) {
+            // Child process
+            execvp(condition_args[0], condition_args);
+            perror("execvp failed");
+            exit(1);
+        } else if (pid > 0) {
+            // Parent process
+            int status;
+            waitpid(pid, &status, 0);
+            condition_status = WEXITSTATUS(status);
+        } else {
+            perror("fork failed");
+            condition_status = 1;
+        }
+    }
+    
+    // Free condition args
+    for (int i = 0; condition_args[i] != NULL; i++) {
+        free(condition_args[i]);
+    }
+    free(condition_args);
+    
+    // Execute appropriate block based on condition status
+    char** commands_to_execute;
+    int command_count;
+    
+    if (condition_status == 0) {
+        // Condition succeeded - execute then block
+        commands_to_execute = block->then_commands;
+        command_count = block->then_count;
+    } else if (block->has_else) {
+        // Condition failed and else exists - execute else block
+        commands_to_execute = block->else_commands;
+        command_count = block->else_count;
+    } else {
+        // Condition failed and no else - do nothing
+        return condition_status;
+    }
+    
+    // Execute commands in the block
+    for (int i = 0; i < command_count; i++) {
+        if (commands_to_execute[i] != NULL) {
+            char** args = tokenize(commands_to_execute[i]);
+            if (args != NULL) {
+                if (handle_builtin(args) == 0) {
+                    execute(args);
+                }
+                
+                // Free args
+                for (int j = 0; args[j] != NULL; j++) {
+                    free(args[j]);
+                }
+                free(args);
+            }
+        }
+    }
+    
+    return condition_status;
+}
