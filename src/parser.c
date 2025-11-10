@@ -11,6 +11,7 @@ command_t* parse_command(char* cmdline) {
     cmd->input_file = NULL;
     cmd->output_file = NULL;
     cmd->pipe_output = 0;
+    cmd->background = 0;  // NEW: Initialize background flag
     
     for (int i = 0; i < MAXARGS; i++) {
         cmd->args[i] = NULL;
@@ -21,7 +22,12 @@ command_t* parse_command(char* cmdline) {
     int arg_count = 0;
 
     while ((token = strtok_r(rest, " \t", &rest))) {
-        if (strcmp(token, "<") == 0) {
+        // NEW: Check for background operator at end
+        if (strcmp(token, "&") == 0 && rest == NULL) {
+            cmd->background = 1;
+            break;
+        }
+        else if (strcmp(token, "<") == 0) {
             // Input redirection
             token = strtok_r(rest, " \t", &rest);
             if (token) {
