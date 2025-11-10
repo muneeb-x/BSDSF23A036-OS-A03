@@ -19,7 +19,18 @@
 #define PROMPT "myshell> "
 #define HISTORY_SIZE 20
 #define MAX_COMMANDS 10
-#define MAX_JOBS 20  // NEW: Maximum background jobs
+#define MAX_JOBS 20
+#define MAX_BLOCK_LINES 50  // NEW: Maximum lines in if-then-else block
+
+// NEW: If-then-else block structure
+typedef struct {
+    char* condition;           // The condition command after 'if'
+    char* then_commands[MAX_BLOCK_LINES];  // Commands between then and else/fi
+    char* else_commands[MAX_BLOCK_LINES];  // Commands between else and fi
+    int then_count;
+    int else_count;
+    int has_else;
+} if_block_t;
 
 // Command structure for redirection and pipes
 typedef struct {
@@ -27,15 +38,15 @@ typedef struct {
     char* input_file;
     char* output_file;
     int pipe_output;
-    int background;  // NEW: Background execution flag
+    int background;
 } command_t;
 
-// NEW: Job structure for background processes
+// Job structure for background processes
 typedef struct {
     pid_t pid;
     char* command;
     int job_id;
-    int status; // 0=running, 1=completed
+    int status;
 } job_t;
 
 // Function declarations
@@ -48,7 +59,7 @@ int handle_builtin(char** arglist);
 void builtin_exit();
 void builtin_cd(char** args);
 void builtin_help();
-void builtin_jobs();  // Will be updated
+void builtin_jobs();
 
 // History functions
 void init_history();
@@ -62,7 +73,7 @@ void free_command(command_t* cmd);
 int execute_redirected(command_t* cmd);
 int execute_pipeline(command_t** commands, int num_commands);
 
-// NEW: Job control functions
+// Job control functions
 void init_jobs();
 int add_job(pid_t pid, char* command);
 void remove_job(pid_t pid);
@@ -70,8 +81,14 @@ void update_jobs();
 void print_jobs();
 void reap_zombies();
 
-// NEW: Command chaining functions
+// Command chaining functions
 command_t** parse_command_chain(char* cmdline, int* num_commands);
 void free_command_chain(command_t** commands, int num_commands);
+
+// NEW: If-then-else functions
+if_block_t* parse_if_block();
+void free_if_block(if_block_t* block);
+int execute_if_block(if_block_t* block);
+int is_control_keyword(char* line);
 
 #endif
