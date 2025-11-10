@@ -13,6 +13,10 @@ void update_jobs();
 void reap_zombies();
 command_t** parse_command_chain(char* cmdline, int* num_commands);
 void free_command_chain(command_t** commands, int num_commands);
+if_block_t* parse_if_block();      // NEW
+void free_if_block(if_block_t* block);  // NEW
+int execute_if_block(if_block_t* block); // NEW
+int is_control_keyword(char* line);     // NEW
 
 // Helper function to convert command_t to arglist for builtins
 char** command_to_arglist(command_t* cmd) {
@@ -70,7 +74,7 @@ int main() {
     init_jobs();
 
     while (1) {
-        // NEW: Reap zombie processes before prompt
+        // Reap zombie processes before prompt
         reap_zombies();
         update_jobs();
         
@@ -88,6 +92,18 @@ int main() {
             continue;
         }
 
+        // NEW: Check for if statement
+        if (is_control_keyword(cmdline) && strncmp(cmdline, "if", 2) == 0) {
+            // Handle if-then-else block
+            if_block_t* block = parse_if_block();
+            if (block != NULL) {
+                execute_if_block(block);
+                free_if_block(block);
+            }
+            free(cmdline);
+            continue;
+        }
+
         // Handle !n commands
         if (cmdline[0] == '!') {
             if (execute_bang_command(cmdline)) {
@@ -100,7 +116,7 @@ int main() {
         add_history(cmdline);
         add_to_history(cmdline);
         
-        // NEW: Parse command chain with semicolons
+        // Parse command chain with semicolons
         int num_commands;
         command_t** commands = parse_command_chain(cmdline, &num_commands);
         
