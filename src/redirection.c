@@ -1,6 +1,9 @@
 #include "shell.h"
 #include <fcntl.h>
 
+// External declaration for job functions
+extern int add_job(pid_t pid, char* command);
+
 // Execute command with I/O redirection
 int execute_redirected(command_t* cmd) {
     if (cmd == NULL || cmd->args[0] == NULL) {
@@ -51,8 +54,21 @@ int execute_redirected(command_t* cmd) {
         exit(1);
     } else {
         // Parent process
-        int status;
-        waitpid(pid, &status, 0);
-        return status;
+        if (cmd->background) {
+            // NEW: Background execution - don't wait, add to job list
+            char command_str[MAX_LEN] = {0};
+            for (int i = 0; cmd->args[i] != NULL && i < MAXARGS - 1; i++) {
+                if (i > 0) strcat(command_str, " ");
+                strcat(command_str, cmd->args[i]);
+            }
+            int job_id = add_job(pid, command_str);
+            printf("[%d] %d\n", job_id, pid);
+            return 0;
+        } else {
+            // Foreground execution - wait for completion
+            int status;
+            waitpid(pid, &status, 0);
+            return status;
+        }
     }
 }

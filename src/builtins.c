@@ -1,8 +1,9 @@
 #include "shell.h"
 #include <stdio.h>
 
-// External declaration for history function
+// External declarations
 void builtin_history();
+void print_jobs();
 
 // Exit the shell
 void builtin_exit() {
@@ -36,13 +37,13 @@ void builtin_help() {
     printf("  cd <directory>    - Change current directory\n");
     printf("  exit              - Exit the shell\n");
     printf("  help              - Display this help message\n");
-    printf("  history           - Display command history\n");  // UPDATED
-    printf("  jobs              - Display background jobs (not implemented)\n");
+    printf("  history           - Display command history\n");
+    printf("  jobs              - Display background jobs\n");  // UPDATED
 }
 
-// Placeholder for jobs command
+// UPDATED: jobs command now shows background processes
 void builtin_jobs() {
-    printf("Job control not yet implemented.\n");
+    print_jobs();
 }
 
 // Handle built-in commands
@@ -63,7 +64,7 @@ int handle_builtin(char** arglist) {
         builtin_help();
         return 1;
     }
-    else if (strcmp(arglist[0], "history") == 0) {  // NEW
+    else if (strcmp(arglist[0], "history") == 0) {
         builtin_history();
         return 1;
     }
