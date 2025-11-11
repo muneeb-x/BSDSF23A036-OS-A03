@@ -20,13 +20,21 @@
 #define HISTORY_SIZE 20
 #define MAX_COMMANDS 10
 #define MAX_JOBS 20
-#define MAX_BLOCK_LINES 50  // NEW: Maximum lines in if-then-else block
+#define MAX_BLOCK_LINES 50
+#define MAX_VARIABLES 100  // NEW: Maximum variables
 
-// NEW: If-then-else block structure
+// NEW: Variable structure
+typedef struct variable {
+    char* name;
+    char* value;
+    struct variable* next;
+} variable_t;
+
+// If-then-else block structure
 typedef struct {
-    char* condition;           // The condition command after 'if'
-    char* then_commands[MAX_BLOCK_LINES];  // Commands between then and else/fi
-    char* else_commands[MAX_BLOCK_LINES];  // Commands between else and fi
+    char* condition;
+    char* then_commands[MAX_BLOCK_LINES];
+    char* else_commands[MAX_BLOCK_LINES];
     int then_count;
     int else_count;
     int has_else;
@@ -85,10 +93,19 @@ void reap_zombies();
 command_t** parse_command_chain(char* cmdline, int* num_commands);
 void free_command_chain(command_t** commands, int num_commands);
 
-// NEW: If-then-else functions
+// If-then-else functions
 if_block_t* parse_if_block();
 void free_if_block(if_block_t* block);
 int execute_if_block(if_block_t* block);
 int is_control_keyword(char* line);
+
+// NEW: Variable functions
+void init_variables();
+void set_variable(char* name, char* value);
+char* get_variable(char* name);
+void builtin_set();
+int is_assignment(char* token);
+void handle_assignment(char* assignment);
+void expand_variables(char*** arglist);
 
 #endif
