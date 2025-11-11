@@ -1,6 +1,10 @@
 #include "shell.h"
 #include <string.h>
 
+// External declarations for variable functions
+extern int is_assignment(char* token);
+extern void handle_assignment(char* assignment);
+
 // Parse command line into command structure
 command_t* parse_command(char* cmdline) {
     if (cmdline == NULL || cmdline[0] == '\0') {
@@ -11,7 +15,7 @@ command_t* parse_command(char* cmdline) {
     cmd->input_file = NULL;
     cmd->output_file = NULL;
     cmd->pipe_output = 0;
-    cmd->background = 0;  // NEW: Initialize background flag
+    cmd->background = 0;
     
     for (int i = 0; i < MAXARGS; i++) {
         cmd->args[i] = NULL;
@@ -20,6 +24,13 @@ command_t* parse_command(char* cmdline) {
     char* token;
     char* rest = cmdline;
     int arg_count = 0;
+
+    // NEW: Check if the entire line is an assignment
+    if (is_assignment(cmdline)) {
+        handle_assignment(cmdline);
+        free_command(cmd);
+        return NULL; // Assignment handled, no command to execute
+    }
 
     while ((token = strtok_r(rest, " \t", &rest))) {
         // NEW: Check for background operator at end
@@ -44,9 +55,16 @@ command_t* parse_command(char* cmdline) {
             cmd->pipe_output = 1;
             break; // Stop parsing for this command
         } else {
-            // Regular argument
-            if (arg_count < MAXARGS - 1) {
-                cmd->args[arg_count++] = strdup(token);
+            // NEW: Check for assignment within command
+            if (is_assignment(token)) {
+                handle_assignment(token);
+                // Continue parsing other arguments
+                continue;
+            } else {
+                // Regular argument
+                if (arg_count < MAXARGS - 1) {
+                    cmd->args[arg_count++] = strdup(token);
+                }
             }
         }
     }
