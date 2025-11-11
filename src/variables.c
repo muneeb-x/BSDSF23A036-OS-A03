@@ -100,3 +100,61 @@ void handle_assignment(char* assignment) {
     
     set_variable(name, value);
 }
+
+// Expand variables in argument list
+void expand_variables(char*** arglist_ptr) {
+    if (arglist_ptr == NULL || *arglist_ptr == NULL) return;
+    
+    char** arglist = *arglist_ptr;
+    
+    for (int i = 0; arglist[i] != NULL; i++) {
+        char* arg = arglist[i];
+        
+        // Check if argument starts with $ (variable expansion)
+        if (arg[0] == '$') {
+            char* var_name = arg + 1; // Skip the $
+            
+            // Handle ${VAR} syntax
+            if (var_name[0] == '{') {
+                char* end = strchr(var_name, '}');
+                if (end != NULL) {
+                    *end = '\0';
+                    var_name++; // Skip the {
+                }
+            }
+            
+            // Get variable value
+            char* value = get_variable(var_name);
+            if (value != NULL) {
+                // Replace the argument with the variable value
+                free(arglist[i]);
+                arglist[i] = strdup(value);
+            } else {
+                // Variable not found, replace with empty string
+                free(arglist[i]);
+                arglist[i] = strdup("");
+            }
+        }
+    }
+}
+
+// Set command to display all variables
+void builtin_set() {
+    variable_t* current = variable_list;
+    int count = 0;
+    
+    printf("Shell variables:\n");
+    while (current != NULL) {
+        printf("  %s=%s\n", current->name, current->value);
+        current = current->next;
+        count++;
+    }
+    
+    printf("Environment variables:\n");
+    extern char** environ;
+    for (char** env = environ; *env != NULL; env++) {
+        printf("  %s\n", *env);
+    }
+    
+    printf("Total: %d shell variables\n", count);
+}
