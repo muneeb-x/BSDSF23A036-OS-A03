@@ -8,11 +8,11 @@ SRCDIR = src
 OBJDIR = obj
 BINDIR = bin
 
-# Source files (UPDATED: added if_else.c)
+# Source files (UPDATED: added variables.c)
 SOURCES = $(SRCDIR)/main.c $(SRCDIR)/shell.c $(SRCDIR)/execute.c \
           $(SRCDIR)/builtins.c $(SRCDIR)/history.c $(SRCDIR)/parser.c \
           $(SRCDIR)/redirection.c $(SRCDIR)/pipes.c $(SRCDIR)/jobs.c \
-          $(SRCDIR)/chain.c $(SRCDIR)/if_else.c
+          $(SRCDIR)/chain.c $(SRCDIR)/if_else.c $(SRCDIR)/variables.c
 OBJECTS = $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
 
 # Target executable
