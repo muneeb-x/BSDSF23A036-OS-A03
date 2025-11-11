@@ -4,6 +4,7 @@
 // External declarations
 void builtin_history();
 void print_jobs();
+void builtin_set();  // NEW
 
 // Exit the shell
 void builtin_exit() {
@@ -38,10 +39,11 @@ void builtin_help() {
     printf("  exit              - Exit the shell\n");
     printf("  help              - Display this help message\n");
     printf("  history           - Display command history\n");
-    printf("  jobs              - Display background jobs\n");  // UPDATED
+    printf("  jobs              - Display background jobs\n");
+    printf("  set               - Display all variables\n");  // NEW
 }
 
-// UPDATED: jobs command now shows background processes
+// Jobs command
 void builtin_jobs() {
     print_jobs();
 }
@@ -70,6 +72,10 @@ int handle_builtin(char** arglist) {
     }
     else if (strcmp(arglist[0], "jobs") == 0) {
         builtin_jobs();
+        return 1;
+    }
+    else if (strcmp(arglist[0], "set") == 0) {  // NEW
+        builtin_set();
         return 1;
     }
 

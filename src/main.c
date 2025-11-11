@@ -13,10 +13,12 @@ void update_jobs();
 void reap_zombies();
 command_t** parse_command_chain(char* cmdline, int* num_commands);
 void free_command_chain(command_t** commands, int num_commands);
-if_block_t* parse_if_block();      // NEW
-void free_if_block(if_block_t* block);  // NEW
-int execute_if_block(if_block_t* block); // NEW
-int is_control_keyword(char* line);     // NEW
+if_block_t* parse_if_block();
+void free_if_block(if_block_t* block);
+int execute_if_block(if_block_t* block);
+int is_control_keyword(char* line);
+void init_variables();        // NEW
+void expand_variables(char*** arglist);  // NEW
 
 // Helper function to convert command_t to arglist for builtins
 char** command_to_arglist(command_t* cmd) {
@@ -40,18 +42,16 @@ void execute_single_command(command_t* cmd) {
     
     char** arglist = command_to_arglist(cmd);
     if (arglist != NULL) {
+        // NEW: Expand variables before execution
+        expand_variables(&arglist);
+        
         if (handle_builtin(arglist) == 0) {
             // Not a built-in, check for redirection/background
             if (cmd->input_file || cmd->output_file || cmd->background) {
                 execute_redirected(cmd);
             } else if (cmd->pipe_output) {
-                // Handle pipeline
-                command_t* commands[2];
-                commands[0] = cmd;
-                
-                // Parse the second command after pipe
-                // Note: This is simplified - full pipeline parsing would be more complex
-                printf("Note: Multi-command pipelines need full command line for parsing\n");
+                // Handle pipeline - simplified message
+                printf("Note: Multi-command pipelines need full command line parsing\n");
             } else {
                 // Regular command execution
                 execute(arglist);
@@ -69,9 +69,10 @@ void execute_single_command(command_t* cmd) {
 int main() {
     char* cmdline;
     
-    // Initialize history and jobs
+    // Initialize history, jobs, and variables
     init_history();
     init_jobs();
+    init_variables();  // NEW
 
     while (1) {
         // Reap zombie processes before prompt
@@ -92,7 +93,7 @@ int main() {
             continue;
         }
 
-        // NEW: Check for if statement
+        // Check for if statement
         if (is_control_keyword(cmdline) && strncmp(cmdline, "if", 2) == 0) {
             // Handle if-then-else block
             if_block_t* block = parse_if_block();
