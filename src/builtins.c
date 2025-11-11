@@ -4,7 +4,7 @@
 // External declarations
 void builtin_history();
 void print_jobs();
-void builtin_set();  // NEW
+void builtin_set();
 
 // Exit the shell
 void builtin_exit() {
@@ -32,7 +32,7 @@ void builtin_cd(char** args) {
     }
 }
 
-// Display help message
+// Display help message - FIXED: Added 'set' command to help
 void builtin_help() {
     printf("Built-in commands:\n");
     printf("  cd <directory>    - Change current directory\n");
@@ -40,7 +40,7 @@ void builtin_help() {
     printf("  help              - Display this help message\n");
     printf("  history           - Display command history\n");
     printf("  jobs              - Display background jobs\n");
-    printf("  set               - Display all variables\n");  // NEW
+    printf("  set               - Display all variables\n");
 }
 
 // Jobs command
@@ -74,7 +74,7 @@ int handle_builtin(char** arglist) {
         builtin_jobs();
         return 1;
     }
-    else if (strcmp(arglist[0], "set") == 0) {  // NEW
+    else if (strcmp(arglist[0], "set") == 0) {
         builtin_set();
         return 1;
     }
